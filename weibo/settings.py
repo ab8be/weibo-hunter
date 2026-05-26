@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 
 BOT_NAME = 'weibo'
 SPIDER_MODULES = ['weibo.spiders']
@@ -12,7 +13,7 @@ DEFAULT_REQUEST_HEADERS = {
     'Accept':
     'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7',
-    'cookie': 'your_cookie_here',
+    'cookie': os.getenv('WEIBO_COOKIE', ''),
 }
 ITEM_PIPELINES = {
     'weibo.pipelines.DuplicatesPipeline': 300,
@@ -42,6 +43,10 @@ END_DATE = '2020-03-01'
 FURTHER_THRESHOLD = 46
 # 爬取结果的数量限制，爬取到该数量的微博后自动停止，设置为0代表不限制
 LIMIT_RESULT = 0
+# 是否请求微博 AJAX 接口补充 IP 属地。默认关闭，避免额外请求阻塞主抓取链路。
+FETCH_IP = os.getenv('WEIBO_FETCH_IP', '0') == '1'
+# IP 属地接口超时时间，仅在 FETCH_IP=True 时使用。
+IP_REQUEST_TIMEOUT = 5
 # 图片文件存储路径
 IMAGES_STORE = './'
 # 视频文件存储路径

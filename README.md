@@ -29,6 +29,116 @@
 - 微博视频：微博中的视频，保存在以关键词为名的文件夹下的videos文件夹里
 - user_authentication：微博用户类型，值分别是`蓝v`，`黄v`，`红v`，`金v`和`普通用户`
 
+## 当前修复版快速使用
+
+本仓库已修复为环境变量配置 Cookie、补齐依赖、启动期校验、解析容错和基础测试的版本。默认仍使用 CSV 输出，结果写入 `结果文件/<关键词>/<关键词>.csv`。
+
+### 1. 安装依赖
+
+建议在虚拟环境中执行：
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. 配置微博 Cookie
+
+不要把真实 Cookie 写进代码或提交到 Git。运行前设置环境变量 `WEIBO_COOKIE`。
+
+PowerShell：
+
+```powershell
+$env:WEIBO_COOKIE = "你的微博Cookie"
+```
+
+cmd：
+
+```cmd
+set WEIBO_COOKIE=你的微博Cookie
+```
+
+Linux/macOS：
+
+```bash
+export WEIBO_COOKIE="你的微博Cookie"
+```
+
+如果没有配置 Cookie，爬虫启动时会给出明确错误并停止。
+
+### 3. 配置搜索条件
+
+编辑 `weibo/settings.py` 中的常用配置：
+
+```python
+KEYWORD_LIST = ['迪丽热巴']
+START_DATE = '2020-03-01'
+END_DATE = '2020-03-01'
+WEIBO_TYPE = 1
+CONTAIN_TYPE = 0
+REGION = ['全部']
+LIMIT_RESULT = 0
+```
+
+`KEYWORD_LIST` 也可以写成文本文件路径，文件中每行一个关键词。话题写法仍支持 `#话题#`。
+
+### 4. 运行抓取
+
+```bash
+scrapy crawl search -s JOBDIR=crawls/search
+```
+
+如果只想限制抓取条数，可以在 `weibo/settings.py` 设置：
+
+```python
+LIMIT_RESULT = 100
+```
+
+### 5. 可选 IP 属地补充
+
+默认关闭 IP 属地接口请求，避免每条微博额外同步请求拖慢或影响主抓取链路。如确实需要，可设置：
+
+```powershell
+$env:WEIBO_FETCH_IP = "1"
+```
+
+同时可在 `weibo/settings.py` 调整：
+
+```python
+IP_REQUEST_TIMEOUT = 5
+```
+
+### 6. 本地验证
+
+无需访问微博的基础验证：
+
+```bash
+python -m scrapy list
+python -m pytest -q
+```
+
+带 Cookie 的无网络启动验证会生成搜索请求对象：
+
+```powershell
+$env:WEIBO_COOKIE = "dummy"
+python -c "from weibo.spiders.search import SearchSpider; s=SearchSpider(); print(next(s.start_requests()).url)"
+```
+
+真实抓取仍依赖有效微博 Cookie、微博页面结构和网络状态。
+
+## 本次修复内容
+
+- 补齐 `requirements.txt` 中缺失的 Scrapy、requests、pytest 依赖。
+- 将默认 Cookie 改为从 `WEIBO_COOKIE` 环境变量读取，避免把真实 Cookie 写入仓库。
+- 将 spider 配置加载从类定义阶段移到实例初始化阶段，避免导入时直接 `sys.exit`，便于测试和诊断。
+- 增加启动期配置校验：关键词、日期范围、Cookie 缺失会给出明确错误。
+- 修复分页请求的 `meta` 传递，确保 keyword/province/date/city 等上下文不会在翻页时丢失。
+- 默认关闭每条微博的同步 IP 属地请求，并为可选请求增加超时和异常处理。
+- 加强解析容错：缺少核心字段的卡片会被跳过并记录日志；可选字段缺失时使用空值，不让整次抓取崩溃。
+- 统一 `pics` 字段为列表/字符串都可写入，修复 CSV、SQLite、MySQL 管道对图片字段的处理。
+- 修复 SQLite 管道错误标志名不一致和异常后未返回 item 的问题。
+- 删除调试输出，改用 Scrapy logger。
+- 新增 pytest 覆盖工具函数、关键词文件读取、区域筛选、去重管道、CSV 输出、Cookie 校验、基础解析和缺字段容错。
+
 ## 使用说明
 本程序的所有配置都在setting.py文件中完成，该文件位于“weibo-search\weibo\settings.py”。
 ### 1.下载脚本
