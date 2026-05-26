@@ -59,12 +59,14 @@ Commands run:
 python -m py_compile weibo\spiders\search.py weibo\pipelines.py weibo\utils\util.py
 python -m scrapy list
 python -m pytest -q
+$env:WEIBO_COOKIE='dummy'; python -c "from weibo.spiders.search import SearchSpider; s=SearchSpider(); r=next(s.start_requests()); print(r.url)"
 ```
 
 Observed result:
 
 - `python -m scrapy list` returns `search`.
 - `python -m pytest -q` passes 15 tests.
+- `SearchSpider.start_requests()` generates an `s.weibo.com` search URL when `WEIBO_COOKIE` is set.
 
 ## How To Use
 

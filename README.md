@@ -156,7 +156,7 @@ $ pip install -r requirements.txt
 ```
 
 ### 4.设置cookie
-DEFAULT_REQUEST_HEADERS中的cookie是我们需要填的值，如何获取cookie详见[如何获取cookie](#如何获取cookie)，获取后将"your cookie"替换成真实的cookie即可。
+运行前通过环境变量 `WEIBO_COOKIE` 设置 Cookie，不要把真实 Cookie 写进 `weibo/settings.py` 或提交到 Git。如何获取 Cookie 详见[如何获取cookie](#如何获取cookie)。
 ### 5.设置搜索关键词
 修改setting.py文件夹中的KEYWORD_LIST参数。
 如果你想搜索一个关键词，如“迪丽热巴”：
