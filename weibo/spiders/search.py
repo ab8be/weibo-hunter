@@ -18,9 +18,18 @@ class SearchSpider(scrapy.Spider):
     allowed_domains = ['weibo.com']
     base_url = 'https://s.weibo.com'
 
-    def __init__(self, *args, **kwargs):
+    @classmethod
+    def from_crawler(cls, crawler, *args, **kwargs):
+        spider = super().from_crawler(crawler, *args, **kwargs)
+        spider.configure(crawler.settings)
+        return spider
+
+    def __init__(self, *args, settings=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.project_settings = get_project_settings()
+        self.configure(settings or get_project_settings())
+
+    def configure(self, settings):
+        self.project_settings = settings
         self.keyword_list = self.load_keyword_list(
             self.project_settings.get('KEYWORD_LIST'))
         self.weibo_type = util.convert_weibo_type(

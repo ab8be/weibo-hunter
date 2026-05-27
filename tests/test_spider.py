@@ -1,5 +1,6 @@
 import pytest
 from scrapy.exceptions import CloseSpider
+from scrapy.settings import Settings
 from scrapy.http import HtmlResponse
 
 from weibo.spiders.search import SearchSpider
@@ -23,6 +24,26 @@ def test_load_keyword_list_encodes_topic():
     spider = SearchSpider()
 
     assert spider.load_keyword_list(['#话题#', '普通']) == ['%23话题%23', '普通']
+
+
+def test_constructor_accepts_runtime_settings_override():
+    spider = SearchSpider(
+        settings=Settings({
+            'KEYWORD_LIST': ['测试'],
+            'WEIBO_TYPE': 0,
+            'CONTAIN_TYPE': 2,
+            'REGION': ['全部'],
+            'START_DATE': '2020-01-01',
+            'END_DATE': '2020-01-01',
+            'LIMIT_RESULT': 5,
+            'DEFAULT_REQUEST_HEADERS': {
+                'cookie': 'dummy'
+            },
+        }))
+
+    assert spider.limit_result == 5
+    assert spider.weibo_type == '&typeall=1'
+    assert spider.contain_type == '&hasvideo=1'
 
 
 def test_load_keyword_list_reports_invalid_encoding(tmp_path):

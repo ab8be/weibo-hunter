@@ -136,6 +136,7 @@ python -c "from weibo.spiders.search import SearchSpider; s=SearchSpider(); prin
 - 加强解析容错：缺少核心字段的卡片会被跳过并记录日志；可选字段缺失时使用空值，不让整次抓取崩溃。
 - 统一 `pics` 字段为列表/字符串都可写入，修复 CSV、SQLite、MySQL 管道对图片字段的处理。
 - 修复 SQLite 管道错误标志名不一致和异常后未返回 item 的问题。
+- 修复 Scrapy 命令行 `-s` 覆盖参数不进入 spider 的问题，例如 `-s LIMIT_RESULT=5` 现在会生效。
 - 删除调试输出，改用 Scrapy logger。
 - 新增 pytest 覆盖工具函数、关键词文件读取、区域筛选、去重管道、CSV 输出、Cookie 校验、基础解析和缺字段容错。
 
