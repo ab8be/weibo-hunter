@@ -33,6 +33,12 @@
 
 本仓库已修复为环境变量配置 Cookie、补齐依赖、启动期校验、解析容错和基础测试的版本。默认仍使用 CSV 输出，结果写入 `结果文件/<关键词>/<关键词>.csv`。
 
+面向 AI/IDE/Claude Code/Codex 的操作入口见：
+
+- `docs/AI_AGENT_GUIDE.md`
+- `docs/COLLECTION_CONTRACT.md`
+- `scripts/collect_weibo.py`
+
 ### 1. 安装依赖
 
 建议在虚拟环境中执行：
@@ -83,6 +89,14 @@ LIMIT_RESULT = 0
 
 ### 4. 运行抓取
 
+推荐使用脚本入口，便于 AI 和 IDE 稳定调用：
+
+```bash
+python scripts/collect_weibo.py --keyword 迪丽热巴 --start-date 2020-03-01 --end-date 2020-03-01 --limit 100
+```
+
+也可以直接使用 Scrapy：
+
 ```bash
 scrapy crawl search -s JOBDIR=crawls/search
 ```
@@ -114,6 +128,7 @@ IP_REQUEST_TIMEOUT = 5
 ```bash
 python -m scrapy list
 python -m pytest -q
+python scripts/collect_weibo.py --keyword 测试 --start-date 2020-01-01 --end-date 2020-01-01 --limit 5 --dry-run
 ```
 
 带 Cookie 的无网络启动验证会生成搜索请求对象：

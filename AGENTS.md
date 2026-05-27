@@ -1,4 +1,21 @@
 <!-- GSD:project-start source:PROJECT.md -->
+## AI Agent Operating Contract
+
+This repository is intended to be usable by humans and AI coding agents.
+
+Agent-safe collection entry point:
+
+```bash
+python scripts/collect_weibo.py --keyword 迪丽热巴 --start-date 2020-03-01 --end-date 2020-03-01 --limit 100
+```
+
+Required secret handling:
+
+- Use `WEIBO_COOKIE`; never write real Cookie values into source files.
+- Do not commit `结果文件/`, `crawls/`, or other runtime artifacts.
+- For orientation, read `docs/AI_AGENT_GUIDE.md` and `docs/COLLECTION_CONTRACT.md`.
+- Before claiming collection behavior works, run `python -m pytest -q`, `python -m scrapy list`, and a dry run with `scripts/collect_weibo.py --dry-run`.
+
 ## Project
 
 **Weibo Hunter Repair**
@@ -32,14 +49,14 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 ### Production
 | Package | Version Constraint | Purpose | Where Used |
 |---------|--------------------|---------|------------|
-| `scrapy` | Not declared in requirements.txt | Core scraping framework | All spider/pipeline/middleware files |
+| `scrapy` | `>=2.11,<3` | Core scraping framework | All spider/pipeline/middleware files |
 | `Pillow` | `>=8.1.1` (in `requirements.txt`) | Image processing for `ImagesPipeline` | `weibo/pipelines.py:130` |
-| `requests` | Not declared in requirements.txt | Direct HTTP calls to Weibo AJAX API for IP/region lookup | `weibo/spiders/search.py:8`, `search.py:321-333` |
+| `requests` | `>=2.31,<3` | Optional Weibo AJAX API call for IP/region lookup when `WEIBO_FETCH_IP=1` | `weibo/spiders/search.py` |
 | `pymysql` | Not declared (optional, lazy-imported) | MySQL database driver | `weibo/pipelines.py:209,249` |
 | `pymongo` | Not declared (optional, lazy-imported) | MongoDB database driver | `weibo/pipelines.py:179,187` |
 | `sqlite3` | stdlib (no install needed) | SQLite database driver | `weibo/pipelines.py:73` |
 ### Development
-- None declared. No dev dependencies, no linter configs, no formatter configs.
+- `pytest>=8,<9` is declared for regression tests. No linter or formatter config is currently present.
 ## Storage Backends
 | Backend | Status | Driver | Config Location |
 |---------|--------|--------|-----------------|
@@ -51,7 +68,7 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 | Video download | Disabled (commented out) | Scrapy `FilesPipeline` | `weibo/pipelines.py:161-173` |
 ## External Services
 - **Weibo Search Pages** -- `https://s.weibo.com/weibo?q=...` (HTML scraping via XPath)
-- **Weibo AJAX API** -- `https://weibo.com/ajax/statuses/show?id={bid}&locale=zh-CN` (JSON endpoint for IP/region info; called via `requests.get()` bypassing Scrapy's request engine)
+- **Weibo AJAX API** -- `https://weibo.com/ajax/statuses/show?id={bid}&locale=zh-CN` (optional JSON endpoint for IP/region info; disabled by default with `WEIBO_FETCH_IP=0`)
 ## Build and Deployment
 - **Run command:** `scrapy crawl search` (from project root)
 - **No CI/CD:** No GitHub Actions, Jenkins, or other pipeline configs present
@@ -72,7 +89,7 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 | `LOG_LEVEL` | string | `'ERROR'` | Scrapy log verbosity |
 | `COOKIES_ENABLED` | bool | `False` | Scrapy cookie middleware disabled (cookie sent via headers instead) |
 | `IMAGES_STORE` / `FILES_STORE` | string | `'./'` | Download paths for images/videos |
-| `DEFAULT_REQUEST_HEADERS` | dict | includes `cookie: 'your_cookie_here'` | Request headers with user-supplied cookie |
+| `DEFAULT_REQUEST_HEADERS` | dict | reads `WEIBO_COOKIE` from environment | Request headers with user-supplied cookie |
 - `MONGO_URI`: `'localhost'`
 - `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
 - `SQLITE_DATABASE`: `'weibo.db'`
@@ -113,7 +130,7 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 - `sqlite3` imported inside `open_spider()` in `SQLitePipeline` following the same pattern
 - None; all imports use relative or package-qualified paths
 ## Language Usage
-- Print statements are all Chinese: `'当前页面搜索结果为空'`, `'已达到爬取结果数量限制'`
+- Runtime logs are mostly Chinese and use Scrapy logger.
 - Error messages are Chinese: `'不存在%s文件'`, `'settings.py配置错误'`
 - CSV column headers are Chinese: `'用户昵称'`, `'微博正文'`, `'发布位置'`
 - Directory names use Chinese: `'结果文件'` (result files directory)
@@ -123,22 +140,22 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 - Scrapy boilerplate comments are English (from `scrapy startproject`)
 - XPath selectors use English HTML class names from Weibo's DOM
 ## Error Handling Patterns
-- Database pipelines catch exceptions in `open_spider()` and set a flag on the spider object (e.g., `spider.sqlite_error = True`)
+- Database pipelines catch exceptions in `open_spider()` and set flags on the spider object.
 - Pipeline `process_item()` methods catch exceptions silently in some cases (`MysqlPipeline.process_item` line 281: bare `except Exception` with rollback but no logging)
 - `MongoPipeline.close_spider()` catches `AttributeError` silently when client was never initialized
-- `check_environment()` in `weibo/spiders/search.py` (line 93) reads the error flags set by pipelines and raises `CloseSpider()` with a Chinese print message
-- `sys.exit()` used for configuration errors at spider class-load time (lines 26, 40 in `search.py`)
-- `CloseSpider` exception raised for runtime parsing failures (line 495 in `search.py`)
+- `check_environment()` reads pipeline error flags and raises `CloseSpider()` with Scrapy logger output.
+- Configuration errors are raised as `CloseSpider` during spider startup, not at import time.
+- `CloseSpider` is used for runtime stop conditions such as missing Cookie, invalid dates, or result limits.
 - No structured error recovery; failures either halt the spider or are swallowed
-- `get_keyword_list()` in `weibo/utils/util.py` (line 43) catches `UnicodeDecodeError` and calls `sys.exit()`
-- Date range validation at class-load time in `search.py` (line 39): exits if `start_date > end_date`
+- `get_keyword_list()` raises `ValueError` for invalid encoding; `SearchSpider` converts that to `CloseSpider`.
+- Date range validation happens at spider startup.
 ## Configuration Conventions
 - All configuration in `weibo/settings.py` using Scrapy's settings system
-- Spider reads settings at class level (module load time): `settings = get_project_settings()` then `settings.get('KEYWORD_LIST')`
+- Spider reads settings through `from_crawler(...).configure(crawler.settings)` so Scrapy `-s` overrides are honored.
 - Pipelines also call `get_project_settings()` at module level: `settings = get_project_settings()` in `weibo/pipelines.py` line 18
 - Default values provided inline in `settings.get()` calls: `settings.get('FURTHER_THRESHOLD', 46)`
-- Cookie embedded directly in `DEFAULT_REQUEST_HEADERS` in `settings.py` (line 15): `'cookie': 'your_cookie_here'`
-- No environment variable support; no `.env` file handling
+- Cookie is read from the `WEIBO_COOKIE` environment variable in `weibo/settings.py`.
+- Environment variable support exists for common collection parameters such as keywords, dates, filters, regions, and limits.
 - Pipelines toggled by commenting/uncommenting in `ITEM_PIPELINES` dict in `settings.py` (lines 17-25)
 - Priority numbers: `DuplicatesPipeline: 300`, `CsvPipeline: 301`, optional pipelines `302-306`
 ## Item Data Shape
@@ -147,11 +164,8 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 - Pipelines access data as `item['weibo']` dict, with `.get()` for optional fields
 - This wrapping dict is a project convention, not a Scrapy convention
 ## Anti-Patterns and Technical Debt
-- `search.py` line 619: `print(user_auth)` prints raw SVG ID on every weibo parsed
-- `search.py` line 630: `print(weibo)` prints the entire weibo item dict on every weibo parsed
-- These should be removed or converted to `spider.logger.debug()`
-- `search.py` line 323: `requests.get(url, ...)` in `get_ip()` uses the `requests` library directly, bypassing Scrapy's download middleware, cookie handling, retry logic, and rate limiting
-- Should yield a `scrapy.Request` with a callback instead
+- Debug `print(...)` calls were removed; spider status uses Scrapy logger.
+- `get_ip()` remains a synchronous optional enrichment path, but it is disabled by default and guarded by timeout/exception handling. Leave it off for normal collection unless IP location is explicitly required.
 - `weibo/spiders/search.py` is 639 lines containing all parsing logic
 - `parse_weibo()` alone (lines 419-639) is 220 lines with deeply nested conditionals
 - Should be decomposed into helper classes or mixins
@@ -159,8 +173,7 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 - Invalid values silently produce wrong URLs
 - `MysqlPipeline.process_item()` line 281: bare `except Exception` catches everything and rolls back, but does not log or set error flag
 - `MongoPipeline.close_spider()` line 203: `except AttributeError: pass`
-- `SearchSpider` class body (lines 20-48) executes `get_project_settings()`, file I/O, and `sys.exit()` at import time
-- This makes the module untestable and prevents importing without a valid Scrapy project context
+- `SearchSpider` can be imported and unit-tested without live Weibo access. Tests cover settings injection, parser helpers, basic parsing, and wrapper CLI behavior.
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
@@ -194,7 +207,7 @@ This is an existing Scrapy-based Weibo search crawler that should fetch posts fr
 ### Primary Request Path
 ### Retweet Handling Flow
 ### IP Lookup Flow
-- Spider class-level variables hold settings (loaded once at import time via `get_project_settings()`)
+- Spider settings are loaded from Scrapy runtime settings so `-s` command-line overrides are honored.
 - Instance variables (`self.result_count`) track runtime progress
 - Error flags (`self.mongo_error`, `self.mysql_error`, etc.) are set by pipelines and checked by `check_environment()`
 - `DuplicatesPipeline` uses an in-memory `set()` (`self.ids_seen`) -- not persistent across runs
