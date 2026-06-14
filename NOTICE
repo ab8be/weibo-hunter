@@ -1,0 +1,28 @@
+Weibo Hunter
+=============
+
+This project is a repair and maintenance fork of dataabc/weibo-search
+(https://github.com/dataabc/weibo-search).
+
+Licensing status
+----------------
+The original project (dataabc/weibo-search) does NOT include an open-source
+license file, nor does its README declare one. Under default copyright rules,
+this means the source code remains "All Rights Reserved" by the original
+author (dataabc), and no one else holds redistribution or sublicensing rights
+unless explicitly granted.
+
+This repository is therefore published as a personal repair/maintenance fork
+only. The core crawler logic, data parsing, and pagination strategy are the
+intellectual property of the original author.
+
+What this means for users
+-------------------------
+- You may run, study, and modify this code locally for your own use.
+- Do NOT assume you can redistribute, relicense, or commercially publish this
+  code. If you need such rights, contact the original author (dataabc).
+- If the original author requests any change to this fork, the maintainer will
+  comply.
+
+If the original project adopts an explicit open-source license in the future,
+this fork will adopt the same license and this file will be updated.

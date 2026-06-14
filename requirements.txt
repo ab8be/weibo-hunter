@@ -1,4 +1,13 @@
+# Core runtime dependencies (CSV output, the default mode, needs only these).
 Scrapy>=2.11,<3
 requests>=2.31,<3
 Pillow>=8.1.1
+
+# Test dependencies.
 pytest>=8,<9
+
+# Optional storage backends. They are imported lazily inside the pipelines, so
+# the default CSV run does not require them. Install the ones matching the
+# pipeline(s) you enable in weibo/settings.py:
+#   pip install pymysql     # MySQL    -> MysqlPipeline (priority 302)
+#   pip install pymongo     # MongoDB  -> MongoPipeline (priority 303)

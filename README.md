@@ -222,5 +222,6 @@ python scripts/collect_weibo.py --keyword 测试 --start-date 2020-01-01 --end-d
 ## 致谢 & 许可
 
 - 本项目 fork 自 [dataabc/weibo-search](https://github.com/dataabc/weibo-search)，感谢原作者 dataabc 的开源贡献
-- 原项目未附带开源许可证。按照 GitHub 服务条款，fork 代码的著作权仍归属原作者。本仓库仅作为修复和维护用途，不做商业分发
+- **原项目未附带开源许可证**（仓库根目录无 LICENSE 文件，README 也未声明）。按 GitHub 默认版权规则，原代码著作权仍归属原作者 dataabc，本仓库仅作为个人修复和维护用途公开，不主张任何再许可或再分发权利
+- 完整说明见 [`NOTICE`](NOTICE)
 - 如原作者提出任何要求，本人会积极配合

@@ -66,7 +66,7 @@ $env:WEIBO_COOKIE='dummy'; python -c "from weibo.spiders.search import SearchSpi
 Observed result:
 
 - `python -m scrapy list` returns `search`.
-- `python -m pytest -q` passes 16 tests.
+- `python -m pytest -q` passes all regression tests (19 at the time of writing; see `tests/` for the current set).
 - `SearchSpider.start_requests()` generates an `s.weibo.com` search URL when `WEIBO_COOKIE` is set.
 - A live smoke test with a real Weibo Cookie, `LIMIT_RESULT=5`, and default CSV output exited successfully and added 5 result rows.
 
