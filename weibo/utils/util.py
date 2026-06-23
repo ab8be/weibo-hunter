@@ -67,7 +67,18 @@ def get_regions(region):
 
 
 def standardize_date(created_at):
-    """标准化微博发布时间"""
+    """标准化微博发布时间
+
+    微博偶尔会返回无数字的相对时间（如验证页残留的"秒前"），此时 int() 会
+    抛 ValueError 导致整页解析中断。这里容错：解析失败则返回原字符串。
+    """
+    try:
+        return _standardize_date_inner(created_at)
+    except (ValueError, TypeError):
+        return created_at
+
+
+def _standardize_date_inner(created_at):
     if "刚刚" in created_at:
         created_at = datetime.now().strftime("%Y-%m-%d %H:%M")
     elif "秒" in created_at:

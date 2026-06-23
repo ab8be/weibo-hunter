@@ -125,22 +125,25 @@ scrapy crawl search -s JOBDIR=crawls/search
 |:-----|:-----|
 | `id` | 微博 ID |
 | `bid` | 微博 BID |
+| `user_id` | 发布者 ID |
+| `screen_name` | 发布者昵称 |
 | `text` | 微博正文 |
 | `article_url` | 头条文章 URL |
-| `pics` | 图片 URL（多张逗号分隔） |
-| `video_url` | 视频 URL（多个分号分隔） |
 | `location` | 发布位置 |
-| `created_at` | 发布时间 |
+| `at_users` | @的用户 |
+| `topics` | 话题 |
 | `reposts_count` | 转发数 |
 | `comments_count` | 评论数 |
 | `attitudes_count` | 点赞数 |
+| `created_at` | 发布时间 |
 | `source` | 发布工具 |
-| `topics` | 话题 |
-| `at_users` | @的用户 |
+| `pics` | 图片 URL（多张逗号分隔） |
+| `video_url` | 视频 URL |
 | `retweet_id` | 原始微博 ID（转发微博特有） |
-| `user_id` | 发布者 ID |
-| `screen_name` | 发布者昵称 |
+| `ip` | IP 属地（仅在开启 `WEIBO_FETCH_IP=1` 时填充） |
 | `user_authentication` | 用户类型（蓝V/黄V/红V/金V/普通用户） |
+| `vip_type` | 会员类型（超级会员/会员/非会员） |
+| `vip_level` | 会员等级（0–9） |
 
 ## 配置详解
 
@@ -181,6 +184,8 @@ FURTHER_THRESHOLD = 46
 ```python
 DOWNLOAD_DELAY = 10
 ```
+
+> **注意默认值差异：** 直接 `scrapy crawl search` 时用 `weibo/settings.py` 的默认值 **10 秒**;而通过 `scripts/collect_weibo.py` 入口运行时,CLI 默认 `--download-delay 1.0`(可用该参数覆盖)。两种入口都可用 `scrapy -s DOWNLOAD_DELAY=N` 或 `--download-delay N` 调整。微博反爬较严,生产采集建议保持 5 秒以上。
 
 ### IP 属地（可选）
 

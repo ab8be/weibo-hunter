@@ -41,3 +41,15 @@ def test_get_regions_defaults_to_all_for_invalid_names():
 
     assert '北京' in regions
     assert '上海' in regions
+
+
+def test_standardize_date_handles_relative_time():
+    # 相对时间格式应正常标准化，不抛异常。
+    result = util.standardize_date('今天 10:00')
+    assert result.endswith('10:00')
+
+
+def test_standardize_date_tolerates_non_numeric_relative_time():
+    # 微博偶发的无数字相对时间（验证页残留等），不应抛 ValueError 中断采集。
+    assert util.standardize_date('秒前') == '秒前'
+    assert util.standardize_date('分钟前') == '分钟前'
